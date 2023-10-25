@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "raylib": "^0.14.0",
+    "sqlite3": "^5.1.6"
+  }
+}
