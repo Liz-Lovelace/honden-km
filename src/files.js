@@ -1,7 +1,7 @@
-import config from './config';
+import config from './config.js';
 import fs from 'fs/promises';
 
-export function formatSize(size) {
+function formatSize(size) {
   if (size < 1024) {
     return `${size} B`;
   } else if (size < 1024 * 1024) {
@@ -13,13 +13,13 @@ export function formatSize(size) {
   }
 }
 
-export function formatDate(epoch) {
+function formatDate(epoch) {
   const daysDiff = (Date.now() - epoch) / (1000 * 60 * 60 * 24);
   const date = new Date(epoch);
   return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()} (${Math.floor(daysDiff)} days ago)`;
 }
 
-export async function getFileInfo(path) {
+async function getFileInfo(path) {
   path = config.baseFileStorePath + path;
   let attributes;
   try {
@@ -41,3 +41,4 @@ export async function getFileInfo(path) {
   };
 }
 
+export default {getFileInfo, formatSize, formatDate}

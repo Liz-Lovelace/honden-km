@@ -1,24 +1,24 @@
-import * as tmux from './tmux.js';
+import tmux from './tmux.js';
 
 const sessionName = "editorSession";
 
-export async function run(filename, width, height) {
+async function run(filename, width, height) {
   await tmux.spawn_console(sessionName, "nvim " + filename, width, height);
 }
 
-export async function send_input(key, modifier_keys = {}) {
+async function send_input(key, modifier_keys = {}) {
   return tmux.send_keys(sessionName, key, modifier_keys);
 }
 
-export async function grab_output() {
+async function grab_output() {
   return tmux.capture_pane(sessionName);
 }
 
-export async function resize(width, height) {
+async function resize(width, height) {
   return tmux.resize_window(sessionName, width, height);
 }
 
-export async function kill() {
+async function kill() {
   await tmux.send_keys(sessionName, "escape");
   await tmux.send_keys(sessionName, "escape");
   await tmux.send_keys(sessionName, ":");
@@ -26,3 +26,5 @@ export async function kill() {
   await tmux.send_keys(sessionName, "return");
   await tmux.kill_console(sessionName);
 }
+
+export default {run, send_input, grab_output, resize, kill};

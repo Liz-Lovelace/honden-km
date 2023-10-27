@@ -1,4 +1,5 @@
-import state from './state';
+import state from './state.js';
+import r from 'raylib';
 
 const columns = {
   screenLeft: 0,
@@ -18,8 +19,6 @@ const rows = {
   bottom: 0.91,
   screenBottom: 1,
 };
-
-const viewport = { width: 1, height: 1 };
 
 class Box {
   constructor(box) {
@@ -56,11 +55,13 @@ class Box {
 }
 
 function computeCoordinates(box) {
+  let width = r.GetRenderWidth()
+  let height = r.GetRenderHeight()
   return {
-    x1: Math.floor(box.x1 * viewport.width),
-    y1: Math.floor(box.y1 * viewport.height),
-    x2: Math.floor(box.x2 * viewport.width),
-    y2: Math.floor(box.y2 * viewport.height),
+    x1: Math.floor(box.x1 * width),
+    y1: Math.floor(box.y1 * height),
+    x2: Math.floor(box.x2 * width),
+    y2: Math.floor(box.y2 * height),
   };
 }
 
@@ -68,20 +69,16 @@ const boxesTemplate = {
   content: { x1: columns.left, y1: rows.top, x2: columns.b, y2: rows.bottom },
   links: { x1: columns.b, y1: rows.a, x2: columns.c, y2: rows.bottom },
   debug: { x1: columns.c, y1: rows.top, x2: columns.d, y2: rows.b },
-  state: { x1: columns.c, y1: rows.b, x2: columns.d, y2: rows.bottom },
+  log: { x1: columns.c, y1: rows.b, x2: columns.d, y2: rows.bottom },
   extraText: { x1: columns.d, y1: rows.top, x2: columns.right, y2: rows.bottom },
   filesAB: { x1: columns.b, y1: rows.top, x2: columns.c, y2: rows.a },
   focus: { x1: columns.c, y1: rows.bottom, x2: columns.d, y2: rows.bottom },
   runlines: { x1: columns.screenLeft, x2: columns.screenRight, y1: rows.bottom, y2: rows.screenBottom },
 };
 
-export function setViewportSize(width, height) {
-  viewport.width = width;
-  viewport.height = height;
-}
-
-export function getBox(boxName) {
+function getBox(boxName) {
   const box = boxesTemplate[boxName];
   return new Box(computeCoordinates(box));
 }
 
+export default {getBox}
