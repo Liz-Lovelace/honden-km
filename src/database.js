@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { promisify } from 'util';
 import config from '../config.js';
 
-const sqliteDB = new sqlite3.Database(config.baseFileStorePath + "honden.db");
+const sqliteDB = new sqlite3.Database(config.baseFileStorePath + 'honden.db');
 sqliteDB.run = promisify(sqliteDB.run.bind(sqliteDB));
 sqliteDB.get = promisify(sqliteDB.get.bind(sqliteDB));
 sqliteDB.all = promisify(sqliteDB.all.bind(sqliteDB));
@@ -47,40 +47,40 @@ async function initializeDB() {
 }
 
 async function getInode(uuid) {
-  let inode = await sqliteDB.get("SELECT * FROM inodes WHERE uuid = ?", uuid);
+  let inode = await sqliteDB.get('SELECT * FROM inodes WHERE uuid = ?', uuid);
   if (!inode) {
     return null;
   }
   let entity = await sqliteDB.get(`SELECT * FROM ${inode.type} WHERE uuid = ?`, uuid);
-  return {...inode, entity}
+  return { ...inode, entity };
 }
 
 async function insertInode(uuid, type) {
-  await sqliteDB.run("INSERT OR IGNORE INTO inodes (uuid, type) VALUES (?, ?)", uuid, type);
+  await sqliteDB.run('INSERT OR IGNORE INTO inodes (uuid, type) VALUES (?, ?)', uuid, type);
 }
 
 async function deleteInode(uuid) {
   const inode = await getInode(uuid);
   if (!inode) {
-    throw new Error("Inode not found");
+    throw new Error('Inode not found');
   }
 
-  await sqliteDB.run("BEGIN TRANSACTION");
+  await sqliteDB.run('BEGIN TRANSACTION');
 
   try {
-    await sqliteDB.run("DELETE FROM links WHERE inode1_uuid = ? OR inode2_uuid = ?", uuid, uuid);
+    await sqliteDB.run('DELETE FROM links WHERE inode1_uuid = ? OR inode2_uuid = ?', uuid, uuid);
 
-    if (inode.type === "media" || inode.type === "note") {
+    if (inode.type === 'media' || inode.type === 'note') {
       const entity = await sqliteDB.get(`SELECT * FROM ${inode.type} WHERE uuid = ?`, uuid);
       const filePath = path.join(config.baseFileStorePath, entity.filename);
       await fs.unlink(filePath);
       await sqliteDB.run(`DELETE FROM ${inode.type} WHERE uuid = ?`, uuid);
     }
 
-    await sqliteDB.run("DELETE FROM inodes WHERE uuid = ?", uuid);
-    await sqliteDB.run("COMMIT");
+    await sqliteDB.run('DELETE FROM inodes WHERE uuid = ?', uuid);
+    await sqliteDB.run('COMMIT');
   } catch (error) {
-    await sqliteDB.run("ROLLBACK");
+    await sqliteDB.run('ROLLBACK');
     throw error;
   }
 }
@@ -88,20 +88,20 @@ async function deleteInode(uuid) {
 async function insertNote(filename) {
   const uuid = uuidv4();
   await insertInode(uuid, 'note');
-  await sqliteDB.run("INSERT INTO note (uuid, filename) VALUES (?, ?)", uuid, filename);
+  await sqliteDB.run('INSERT INTO note (uuid, filename) VALUES (?, ?)', uuid, filename);
   return uuid;
 }
 
 async function insertMedia(filename, filetype) {
   const uuid = uuidv4();
   await insertInode(uuid, 'media');
-  await sqliteDB.run("INSERT INTO media (uuid, filename, filetype) VALUES (?, ?, ?)", uuid, filename, filetype);
+  await sqliteDB.run('INSERT INTO media (uuid, filename, filetype) VALUES (?, ?, ?)', uuid, filename, filetype);
   return uuid;
 }
 
 async function connect(uuid1, uuid2) {
   if (uuid1 === uuid2) {
-    console.log("LINK CONNECTION ERROR: inodes are identical");
+    console.log('LINK CONNECTION ERROR: inodes are identical');
     return;
   }
 
@@ -109,14 +109,14 @@ async function connect(uuid1, uuid2) {
     [uuid1, uuid2] = [uuid2, uuid1];
   }
 
-  const existingLink = await sqliteDB.get("SELECT 1 FROM links WHERE inode1_uuid = ? AND inode2_uuid = ?", uuid1, uuid2);
+  const existingLink = await sqliteDB.get('SELECT 1 FROM links WHERE inode1_uuid = ? AND inode2_uuid = ?', uuid1, uuid2);
 
   if (existingLink) {
-    console.log("LINK CONNECTION ERROR: link already exists");
+    console.log('LINK CONNECTION ERROR: link already exists');
     return;
   }
 
-  await sqliteDB.run("INSERT INTO links (inode1_uuid, inode2_uuid) VALUES (?, ?)", uuid1, uuid2);
+  await sqliteDB.run('INSERT INTO links (inode1_uuid, inode2_uuid) VALUES (?, ?)', uuid1, uuid2);
 }
 
 async function disconnect(uuid1, uuid2) {
@@ -124,7 +124,7 @@ async function disconnect(uuid1, uuid2) {
     [uuid1, uuid2] = [uuid2, uuid1];
   }
 
-  await sqliteDB.run("DELETE FROM links WHERE inode1_uuid = ? AND inode2_uuid = ?", uuid1, uuid2);
+  await sqliteDB.run('DELETE FROM links WHERE inode1_uuid = ? AND inode2_uuid = ?', uuid1, uuid2);
 }
 
 async function getConnectedInodes(uuid) {
@@ -134,15 +134,15 @@ async function getConnectedInodes(uuid) {
     SELECT inode1_uuid AS uuid FROM links WHERE inode2_uuid = ?
   `, uuid, uuid);
 
-  let entities = inodes.map(inode => getInode(inode.uuid))
+  let entities = inodes.map(inode => getInode(inode.uuid));
   entities = await Promise.all(entities);
-  entities = entities.map(inode => ({...inode, linkFromUuid: uuid}))
+  entities = entities.map(inode => ({ ...inode, linkFromUuid: uuid }));
 
   return entities;
 }
 
 async function getAllInodes() {
-  const inodes = await sqliteDB.all("SELECT * FROM inodes");
+  const inodes = await sqliteDB.all('SELECT * FROM inodes');
 
   const entities = inodes.map(inode => getInode(inode.uuid));
 

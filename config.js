@@ -1,5 +1,5 @@
-let config = {}
+let config = {};
 
-config.baseFileStorePath = "/home/m/infotest/"
+config.baseFileStorePath = '/home/m/infotest/';
 
-export default config
+export default config;

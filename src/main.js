@@ -10,7 +10,7 @@ const app = express();
 await db.initializeDB();
 
 app.listen(8282, () => {
-  console.log(`Server is running on http://localhost:8282`);
+  console.log('Server is running on http://localhost:8282');
 });
 
 // db.insertMedia("Should you date Katja Grace-.pdf", "application/pdf")
@@ -51,23 +51,23 @@ async function getFileContent(uuid) {
   return data;
 }
 
-app.get('/view', async (req, res) => {
+app.get('/view', async(req, res) => {
   try {
     const { uuid } = req.query;
 
     const fileContent = await getFileContent(uuid);
     const inode = await db.getInode(uuid);
     let linkInodes = await db.getConnectedInodes(uuid);
-    linkInodes = linkInodes.map(inode => ({...inode, buttonActionDisconnect: true}));
+    linkInodes = linkInodes.map(inode => ({ ...inode, buttonActionDisconnect: true }));
 
-    res.send(templates['index']({content: fileContent, inode, linkInodes: linkInodes}));
+    res.send(templates['index']({ content: fileContent, inode, linkInodes: linkInodes }));
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
   }
 });
 
-app.get('/file', async (req, res) => {
+app.get('/file', async(req, res) => {
   try {
     const { uuid } = req.query;
     const inode = await db.getInode(uuid);
@@ -76,57 +76,57 @@ app.get('/file', async (req, res) => {
     }
 
     const filePath = path.join(config.baseFileStorePath, inode.entity.filename);
-    res.sendFile(filePath)
+    res.sendFile(filePath);
 
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
-  };
+  }
 });
 
-app.delete('/inode', async (req, res) => {
+app.delete('/inode', async(req, res) => {
   const { uuid } = req.query;
 
   await db.deleteInode(uuid);
-  res.status(204).send("it hath been done");
+  res.status(204).send('it hath been done');
 });
 
-async function startEditor(filePath){
-  return Bun.spawn(["alacritty", "-e", "nvim", filePath]);
+async function startEditor(filePath) {
+  return Bun.spawn(['alacritty', '-e', 'nvim', filePath]);
 }
 
-app.put('/edit_note', async (req, res) => {
+app.put('/edit_note', async(req, res) => {
   const { uuid } = req.query;
-  let inode = await db.getInode(uuid)
+  let inode = await db.getInode(uuid);
   const filePath = path.join(config.baseFileStorePath, inode.entity.filename);
   await startEditor(filePath);
 
-  res.send("editing")
+  res.send('editing');
 });
 
-app.get('/', async (req, res) => {
+app.get('/', async(req, res) => {
   const allInodes = await db.getAllInodes();
-  const foundInode = allInodes.find(inode => inode.entity.filename === "README.note");
+  const foundInode = allInodes.find(inode => inode.entity.filename === 'README.note');
   
   if (foundInode) {
     res.redirect(`/view?uuid=${foundInode.uuid}`);
   } else {
-    res.send("Hey, you should really make a note called README")
+    res.send('Hey, you should really make a note called README');
   }
 });
 
 function applySearch(search, inodes) {
   const options = {
-    keys: ['entity.filename'], 
-    includeScore: true,  
-    threshold: 0.3 
+    keys: ['entity.filename'],
+    includeScore: true,
+    threshold: 0.3,
   };
   const fuse = new Fuse(inodes, options);
 
   return fuse.search(search).map(result => result.item);
 }
 
-app.get('/search', async (req, res) => {
+app.get('/search', async(req, res) => {
   const { linkFromUuid, search } = req.query;
 
   if (!search) {
@@ -142,48 +142,48 @@ app.get('/search', async (req, res) => {
       linkFromUuid,
       buttonActionConnect: true,
     }))
-    .reduce((acc, newElem) => acc + newElem, "");
+    .reduce((acc, newElem) => acc + newElem, '');
 
   res.send(elements);
 });
 
-app.post('/links', async (req, res) => {
-    const { uuid1, uuid2 } = req.query;
-
-    if (!uuid1 || !uuid2) {
-      return res.status(400).send({ message: "Both uuid1 and uuid2 are required" });
-    }
-
-    await db.connect(uuid1, uuid2);
-
-    const inode = await db.getInode(uuid2);
-    inode.linkFromUuid = uuid1
-    res.status(200).send(templates["entityLink"]({...inode, buttonActionDisconnect: true}));
-});
-
-app.delete('/links', async (req, res) => {
+app.post('/links', async(req, res) => {
   const { uuid1, uuid2 } = req.query;
 
   if (!uuid1 || !uuid2) {
-    return res.status(400).send({ message: "Both uuid1 and uuid2 are required" });
+    return res.status(400).send({ message: 'Both uuid1 and uuid2 are required' });
+  }
+
+  await db.connect(uuid1, uuid2);
+
+  const inode = await db.getInode(uuid2);
+  inode.linkFromUuid = uuid1;
+  res.status(200).send(templates['entityLink']({ ...inode, buttonActionDisconnect: true }));
+});
+
+app.delete('/links', async(req, res) => {
+  const { uuid1, uuid2 } = req.query;
+
+  if (!uuid1 || !uuid2) {
+    return res.status(400).send({ message: 'Both uuid1 and uuid2 are required' });
   }
 
   await db.disconnect(uuid1, uuid2);
-  res.send(templates["restoreLink"]({uuid1, uuid2}));
+  res.send(templates['restoreLink']({ uuid1, uuid2 }));
 });
 
-app.post('/restore_link', async (req, res) => {
-    const { uuid1, uuid2 } = req.query;
+app.post('/restore_link', async(req, res) => {
+  const { uuid1, uuid2 } = req.query;
 
-    if (!uuid1 || !uuid2) {
-      return res.status(400).send({ message: "Both uuid1 and uuid2 are required" });
-    }
+  if (!uuid1 || !uuid2) {
+    return res.status(400).send({ message: 'Both uuid1 and uuid2 are required' });
+  }
 
-    await db.connect(uuid1, uuid2);
+  await db.connect(uuid1, uuid2);
 
-    const inode = await db.getInode(uuid2);
-    inode.linkFromUuid = uuid1
-    res.status(200).send(templates["entityLink"]({...inode, buttonActionDisconnect: true}));
+  const inode = await db.getInode(uuid2);
+  inode.linkFromUuid = uuid1;
+  res.status(200).send(templates['entityLink']({ ...inode, buttonActionDisconnect: true }));
 });
 
 app.use('/assets', express.static(path.join(__dirname, '../assets')));
