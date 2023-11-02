@@ -1,0 +1,24 @@
+<div class="media-object-container">
+  <object class="media-object" data="/file?uuid={{inode.uuid}}" type="{{inode.entity.filetype}}" >
+    <p>Unable to display {{inode.entity.filetype}} file. </p>
+  </object>
+</div>
+
+<style>
+  .media-object-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+  .media-object {
+    width: 100%;
+    height: auto;
+    margin: auto;
+  }
+
+  .media-object[type="application/pdf"] {
+    height: 800px;
+  }
+</style>
+

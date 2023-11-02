@@ -1,0 +1,7 @@
+{
+  "watch": ["src/*", "templates/*"],
+  "ext": "js,hbs",
+  "ignore": ["node_modules/"],
+  "exec": "bun src/main.js"
+}
+

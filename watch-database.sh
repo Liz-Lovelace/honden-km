@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DATABASE_PATH="/home/m/infotest/dim.db"
+DATABASE_PATH="/home/m/infotest/honden.db"
 
 while true; do
     # Clear the screen

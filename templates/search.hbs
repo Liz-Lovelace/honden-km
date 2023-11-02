@@ -1,0 +1,22 @@
+<input class="form-control" type="search" 
+       name="search" placeholder="Search Wizard" 
+       hx-get="/search?linkFromUuid={{inode.uuid}}" 
+       hx-trigger="keyup changed delay:80ms, search" 
+       hx-target="#search-results">
+
+<div id="search-results"></div>
+
+<style>
+  #search-results {
+    position: absolute;
+    top: 10%;
+    left: 40%;
+    transform: translate(-50%, 0);
+    min-width: 30em;
+    border: 1px solid var(--red);
+    background-color: var(--black);
+  }
+  #search-results:empty {
+    display: none;
+  }
+</style>

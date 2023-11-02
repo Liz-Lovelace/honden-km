@@ -1,0 +1,25 @@
+<button onclick="copyToClipboard()">Copy to Clipboard</button>
+<p class="note" id="copyableNote">
+  {{content}}
+</p>
+
+<style>
+  .note {
+    white-space: pre-wrap;
+    font-family: mono;
+  }
+</style>
+
+<script>
+    function copyToClipboard() {
+        const content = document.getElementById('copyableNote').innerText;
+        const textarea = document.createElement('textarea');
+        textarea.value = content;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+    }
+    copyableNote.innerHTML = copyableNote.innerHTML.split('\n').map(line => line.replace(/^ {1,4}/, '')).join('<br>').slice(6);
+</script>
+

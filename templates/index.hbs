@@ -1,0 +1,76 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>
+  <meta charset="utf-8">
+  <title>Honden</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/torii.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --black: #0e0c0b;
+      --grey: #999;
+      --red: #ff0000;
+      --green: #8bec55;
+      --yellow: #ff9c00;
+      --blue: #00a2ff;
+      --magenta: #ff00ce;
+      --cyan: #0bf8ee;
+      --white: #ffffff;
+    }
+
+    body {
+      background-color: var(--black);
+      color: var(--white);
+    }
+
+    .main-container {
+      display: flex;
+    }
+
+    .main-container > * {
+      border: 1px solid var(--red);
+      margin: 5px;
+    }
+
+    #contentDisplay {
+      max-width: 60em;
+      width: 100%;
+      min-height: 30em;
+      padding: 8px;
+    }
+
+    .links {
+      min-height: 10em;
+      width: 25em;
+    }
+
+  </style>
+</head>
+<body>
+
+{{> search this}}
+
+<p> {{inode.entity.filename}} </p>
+<a href="/file?uuid={{inode.uuid}}">(Direct link)</a>
+<button hx-delete="/inode?uuid={{inode.uuid}}" hx-confirm="Are you sure you want to delete"> DELETE </button>
+<button hx-put="/edit_note?uuid={{inode.uuid}}"> EDIT CONTENT </button>
+
+<div class="main-container">
+  <div id="contentDisplay">
+    {{#isType inode 'note'}}
+      {{>note this}}
+    {{/isType}}
+    {{#isType inode 'media'}}
+      {{>media this}}
+    {{/isType}}
+  </div>
+  <div class="links">
+    {{#each linkInodes}}
+        {{>entityLink this}}
+    {{/each}}
+  </div>
+</div>
+
+</body>
+</html>
