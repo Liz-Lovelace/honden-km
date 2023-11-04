@@ -4,11 +4,12 @@
     "express": "^4.18.2",
     "fuse.js": "^7.0.0",
     "handlebars": "^4.7.8",
+    "nodemon": "^3.0.1",
     "sqlite3": "^5.1.6",
     "uuid": "^9.0.1"
   },
   "scripts": {
-    "dev": "nodemon & bun run browsersync",
+    "dev": "bun run nodemon & bun run browsersync",
     "browsersync": "sleep 0.2 && browser-sync start --proxy 'localhost:8282' --files 'templates/*' 'src/*' --no-open",
     "format": "bun run eslint . -c 'eslint.yml' --ext .js --fix"
   }

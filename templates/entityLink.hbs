@@ -4,10 +4,10 @@
     <img src="/assets/{{iconForType type}}.svg"></img> 
   </a>
   {{#if buttonActionDisconnect}}
-    <button hx-delete="/links?uuid1={{linkFromUuid}}&uuid2={{uuid}}" hx-target="closest .entity-link-container"> x </button>
+    <img class="imgbtn" src="/assets/cross.svg" hx-delete="/links?uuid1={{linkFromUuid}}&uuid2={{uuid}}" hx-target="closest .entity-link-container"> </img>
   {{/if}}
   {{#if buttonActionConnect}}
-    <button hx-post="/links?uuid1={{linkFromUuid}}&uuid2={{uuid}}" hx-target=".links" hx-swap="beforeend"> + </button>
+    <img src="/assets/link.svg" hx-post="/links?uuid1={{linkFromUuid}}&uuid2={{uuid}}" hx-target=".links" hx-swap="beforeend"> </img>
   {{/if}}
 </div>
 
@@ -26,17 +26,18 @@
     color: var(--yellow);
   }
 
-  .entity-link img {
+  .entity-link-container img {
     height: 20px;
     margin-left: 10px;
+    cursor: pointer;
   }
 
-  .entity-link-container button {
+  .entity-link-container .imgbtn {
     opacity: 0;
     visibility: hidden;
   }
 
-  .entity-link-container:hover button {
+  .entity-link-container:hover .imgbtn {
     opacity: 1;
     visibility: visible;
   }
