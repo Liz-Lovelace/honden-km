@@ -56,6 +56,11 @@
 <button hx-delete="/inode?uuid={{inode.uuid}}" hx-confirm="Are you sure you want to delete"> DELETE </button>
 <button hx-put="/edit_note?uuid={{inode.uuid}}"> EDIT CONTENT </button>
 
+<form hx-patch="/rename?uuid={{inode.uuid}}" >
+  <input name="newName" type="text" id="newFilename" placeholder="rename">
+  <!-- <button  hx-vals='{"uuid": "{{inode.uuid}}", "newName": document.getElementById("newFilename").value}'>RENAME</button> -->
+</form>
+
 <div class="main-container">
   <div id="contentDisplay">
     {{#isType inode 'note'}}

@@ -1,14 +1,29 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import database from './database.js';
+import database from '../src/database.js';
 import config from '../config.js';
 
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
 
+function extensionToMIME(extension) {
+  const mimeTypes = {
+    '.jpeg': 'image/jpeg',
+    '.jpg': 'image/jpeg',
+    '.png': 'image/png',
+    '.pdf': 'application/pdf',
+    '.webm': 'video/webm',
+    '.mp4': 'video/mp4',
+    '.mkv': 'video/x-matroska',
+    '.mp3': 'audio/mpeg',
+  };
+
+  return mimeTypes[extension.toLowerCase()] || 'application/octet-stream';
+}
+
 async function insertFiles() {
-  database.initializeDB();
+  await database.initializeDB();
   try {
     const files = await readdir(config.baseFileStorePath);
 
@@ -18,12 +33,13 @@ async function insertFiles() {
         const fileStat = await stat(fullPath);
 
         if (fileStat.isFile()) {
-          const ext = path.extname(file).toLowerCase();
+          const ext = path.extname(file);
 
           if (['.md', '.txt', '.note', ''].includes(ext)) {
             await database.insertNote(file);
-          } else if (['.jpeg', '.jpg', '.pdf', '.png', '.webm', '.mp4', '.mkv', '.mp3'].includes(ext)) {
-            await database.insertMedia(file);
+          } else if (['.jpeg', '.jpg', '.png', '.pdf', '.webm', '.mp4', '.mkv', '.mp3'].includes(ext)) {
+            const mimeType = extensionToMIME(ext);
+            await database.insertMedia(file, mimeType);
           }
         }
       } catch (error) {

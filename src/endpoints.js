@@ -1,8 +1,9 @@
 import express from 'express';
+import moment from 'moment';
 import path from 'path';
 import config from '../config.js';
 import db from './database.js';
-import { startEditor, explainError, getFileContent, applySearch } from './utils.js';
+import { startEditor, explainError, getFileContent, applySearch, ensureScratchpadExists } from './utils.js';
 import assert from 'node:assert/strict';
 
 function endpoint(fn) {
@@ -24,8 +25,12 @@ function endpoint(fn) {
 }
 
 function registerEndpoints(app, templates) {
+  app.use(express.urlencoded({ extended: true }));
+
   app.get('/view', endpoint(async req => {
     const { uuid } = req.query;
+
+    await ensureScratchpadExists();
 
     const inode = await db.getInode(uuid);
     
@@ -76,11 +81,21 @@ function registerEndpoints(app, templates) {
     return { file: filePath };
   }));
 
+  app.patch('/rename', endpoint(async req => {
+    const { newName } = req.body;
+    assert(newName, 'you should specify a new name');
+    await db.renameInode(req.query.uuid, newName);
+    return 'File renamed successfully';
+  }));
+
+
   app.delete('/inode', endpoint(async req => {
     await db.deleteInode(req.query.uuid);
     return 'file deleted';
   }));
 
+  let inodeCache;
+  let lastInodeCacheTime = 0;
   app.get('/search', endpoint(async req => {
     const { linkFromUuid, search } = req.query;
 
@@ -88,7 +103,14 @@ function registerEndpoints(app, templates) {
       return '';
     }
 
-    let inodes = await db.getAllInodes();
+    let inodes;
+    if (moment() - lastInodeCacheTime > 10000) {
+      inodes = await db.getAllInodes();
+      inodeCache = inodes;
+      lastInodeCacheTime = moment();
+    } else {
+      inodes = inodeCache;
+    }
 
     return applySearch(search, inodes)
       .map(inode => templates['entityLink']({
@@ -101,7 +123,7 @@ function registerEndpoints(app, templates) {
 
   app.get('/', endpoint(async req => {
     const allInodes = await db.getAllInodes();
-    const foundInode = allInodes.find(inode => inode.entity.filename === 'README.note');
+    const foundInode = allInodes.find(inode => inode.entity.filename === 'README');
     
     if (foundInode) {
       return { redirect: `/view?uuid=${foundInode.uuid}` };

@@ -76,7 +76,6 @@ async function insertInode(uuid, type) {
 
 async function deleteInode(uuid) {
   const inode = await getInode(uuid);
-  assert(inode, `can't find inode with uuid ${uuid}`);
 
   await sqliteDB.run('BEGIN TRANSACTION');
 
@@ -98,6 +97,25 @@ async function deleteInode(uuid) {
   }
 }
 
+async function renameInode(uuid, newFilename) {
+  const inode = await getInode(uuid);
+
+  const existingEntity = await sqliteDB.get(`
+    SELECT 1 FROM note WHERE filename = ? 
+    UNION 
+    SELECT 1 FROM media WHERE filename = ?
+  `, newFilename, newFilename);
+
+  if (existingEntity) {
+    throw new Error('A file with this name already exists');
+  }
+
+  const oldFilePath = path.join(config.baseFileStorePath, inode.entity.filename);
+  const newFilePath = path.join(config.baseFileStorePath, newFilename);
+
+  await sqliteDB.run(`UPDATE ${inode.type} SET filename = ? WHERE uuid = ?`, newFilename, uuid);
+  await fs.rename(oldFilePath, newFilePath);
+}
 async function connect(uuid1, uuid2) {
   if (uuid1 === uuid2) {
     console.log('LINK CONNECTION ERROR: inodes are identical');
@@ -158,5 +176,6 @@ export default {
   getConnectedInodes,
   getAllInodes,
   deleteInode,
+  renameInode,
 };
 

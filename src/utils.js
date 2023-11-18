@@ -29,6 +29,8 @@ function applySearch(search, inodes) {
 }
 
 function explainError(error) {
+  console.log('(from explainError)');
+  console.log(error);
   let errorDescription = `<code>${error.name}: ${error.message}<br>`;
 
   if (error.stack) {
@@ -52,4 +54,14 @@ function explainError(error) {
   return errorDescription;
 }
 
-export { getFileContent, startEditor, applySearch, explainError };
+async function ensureScratchpadExists() {
+  const scratchpadPath = path.join(config.baseFileStorePath, 'scratchpad');
+
+  if (await Bun.file(scratchpadPath).exists()) {
+    return;
+  }
+
+  Bun.write(scratchpadPath, '');
+  await db.insertNote('scratchpad');
+}
+export { getFileContent, startEditor, applySearch, explainError, ensureScratchpadExists };
