@@ -1,7 +1,8 @@
 import sqlite3 from 'sqlite3';
+import assert from 'node:assert/strict';
 import path from 'path';
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs/promises';
+import uuidGenerator from 'short-uuid';
 import { promisify } from 'util';
 import config from '../config.js';
 
@@ -45,14 +46,28 @@ async function initializeDB() {
     );
   `);
 }
-
 async function getInode(uuid) {
   let inode = await sqliteDB.get('SELECT * FROM inodes WHERE uuid = ?', uuid);
-  if (!inode) {
-    return null;
-  }
+  assert(inode, `can't find inode with uuid ${uuid}`);
+
   let entity = await sqliteDB.get(`SELECT * FROM ${inode.type} WHERE uuid = ?`, uuid);
+  assert(entity, `can't find entity with uuid ${uuid}`);
+
   return { ...inode, entity };
+}
+
+async function insertNote(filename) {
+  const uuid = uuidGenerator.generate();
+  await insertInode(uuid, 'note');
+  await sqliteDB.run('INSERT INTO note (uuid, filename) VALUES (?, ?)', uuid, filename);
+  return uuid;
+}
+
+async function insertMedia(filename, filetype) {
+  const uuid = uuidGenerator.generate();
+  await insertInode(uuid, 'media');
+  await sqliteDB.run('INSERT INTO media (uuid, filename, filetype) VALUES (?, ?, ?)', uuid, filename, filetype);
+  return uuid;
 }
 
 async function insertInode(uuid, type) {
@@ -61,9 +76,7 @@ async function insertInode(uuid, type) {
 
 async function deleteInode(uuid) {
   const inode = await getInode(uuid);
-  if (!inode) {
-    throw new Error('Inode not found');
-  }
+  assert(inode, `can't find inode with uuid ${uuid}`);
 
   await sqliteDB.run('BEGIN TRANSACTION');
 
@@ -83,20 +96,6 @@ async function deleteInode(uuid) {
     await sqliteDB.run('ROLLBACK');
     throw error;
   }
-}
-
-async function insertNote(filename) {
-  const uuid = uuidv4();
-  await insertInode(uuid, 'note');
-  await sqliteDB.run('INSERT INTO note (uuid, filename) VALUES (?, ?)', uuid, filename);
-  return uuid;
-}
-
-async function insertMedia(filename, filetype) {
-  const uuid = uuidv4();
-  await insertInode(uuid, 'media');
-  await sqliteDB.run('INSERT INTO media (uuid, filename, filetype) VALUES (?, ?, ?)', uuid, filename, filetype);
-  return uuid;
 }
 
 async function connect(uuid1, uuid2) {
@@ -142,11 +141,9 @@ async function getConnectedInodes(uuid) {
 }
 
 async function getAllInodes() {
-  const inodes = await sqliteDB.all('SELECT * FROM inodes');
-
-  const entities = inodes.map(inode => getInode(inode.uuid));
-
-  return Promise.all(entities);
+  let inodes = await sqliteDB.all('SELECT * FROM inodes');
+  inodes = inodes.map(inode => getInode(inode.uuid));
+  return Promise.all(inodes);
 }
 
 export default {

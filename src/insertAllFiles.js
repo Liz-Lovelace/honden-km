@@ -1,13 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import database from './database.js'; // Replace with the correct path to your database module
+import database from './database.js';
 import config from '../config.js';
 
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
 
 async function insertFiles() {
+  database.initializeDB();
   try {
     const files = await readdir(config.baseFileStorePath);
 
@@ -19,9 +20,10 @@ async function insertFiles() {
         if (fileStat.isFile()) {
           const ext = path.extname(file).toLowerCase();
 
-          // Insert files with .md, .txt, .note extensions or extensionless files
           if (['.md', '.txt', '.note', ''].includes(ext)) {
             await database.insertNote(file);
+          } else if (['.jpeg', '.jpg', '.pdf', '.png', '.webm', '.mp4', '.mkv', '.mp3'].includes(ext)) {
+            await database.insertMedia(file);
           }
         }
       } catch (error) {

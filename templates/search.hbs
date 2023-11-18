@@ -1,4 +1,5 @@
 <input class="form-control" type="search" 
+       id="search-input"
        name="search" placeholder="Search Wizard" 
        hx-get="/search?linkFromUuid={{inode.uuid}}" 
        hx-trigger="keyup changed delay:80ms, search" 
@@ -20,3 +21,15 @@
     display: none;
   }
 </style>
+
+<script>
+  function handleKeyUp(event) {
+    if (event.key === "Escape" || event.keyCode === 27) {
+      document.getElementById('search-input').value = '';
+      document.getElementById('search-results').innerHTML = '';
+    }
+  }
+
+  document.addEventListener('keyup', handleKeyUp);
+</script>
+
