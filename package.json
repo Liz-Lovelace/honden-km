@@ -10,6 +10,7 @@
     "sqlite3": "^5.1.6"
   },
   "scripts": {
+    "start": "bun src/main.js",
     "dev": "bun run nodemon & bun run browsersync",
     "browsersync": "sleep 0.2 && browser-sync start --proxy 'localhost:8282' --files 'templates/*' 'src/*' --no-open",
     "format": "bun run eslint . -c 'eslint.yml' --ext .js --fix"

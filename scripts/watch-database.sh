@@ -2,7 +2,7 @@
 
 DATABASE_PATH="/home/m/kmvault/honden.db"
 
-while true; do
+# while true; do
     # Clear the screen
     clear
 
@@ -15,5 +15,5 @@ while true; do
 
     # Wait for 0.3 seconds
     sleep 0.3
-done
+# done
 

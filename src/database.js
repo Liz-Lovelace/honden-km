@@ -58,15 +58,15 @@ async function getInode(uuid) {
 
 async function insertNote(filename) {
   const uuid = uuidGenerator.generate();
-  await insertInode(uuid, 'note');
   await sqliteDB.run('INSERT INTO note (uuid, filename) VALUES (?, ?)', uuid, filename);
+  await insertInode(uuid, 'note');
   return uuid;
 }
 
 async function insertMedia(filename, filetype) {
   const uuid = uuidGenerator.generate();
-  await insertInode(uuid, 'media');
   await sqliteDB.run('INSERT INTO media (uuid, filename, filetype) VALUES (?, ?, ?)', uuid, filename, filetype);
+  await insertInode(uuid, 'media');
   return uuid;
 }
 
