@@ -7,6 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
+
     :root {
       --black: #0e0c0b;
       --grey: #999;
@@ -22,6 +24,11 @@
     body {
       background-color: var(--black);
       color: var(--white);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
     }
 
     .main-container {
@@ -69,6 +76,9 @@
     {{#isType inode 'media'}}
       {{>media this}}
     {{/isType}}
+    <!--
+      {{>classifiedNotice}}
+    -->
   </div>
   <div class="links">
     {{#each linkInodes}}

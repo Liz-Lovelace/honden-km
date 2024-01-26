@@ -1,0 +1,88 @@
+<div class="classified-notice"> 
+  <div class="classified-header">
+    <div>
+      <h2> FILE <span class="inverse">{{inode.entity.filename}}</span> IS <strong>CLASSIFIED</strong></h2>
+      <p> ACCESS TO THE CONTENTS OF THIS DOCUMENT IS AUTHORIZED <u>ONLY</u> FOR PERSONNEL WITH <span class="inverse"> LEVEL 4 </span> SECURITY CLEARANCE OR HIGHER.</p>
+    </div>
+    <img src="/assets/eyes-only-access.png" />
+  </div>
+
+  <div class="classified-body">
+    <p> UNAUTHORIZED <strong>REPRODUCTION AND/OR DISSEMINATION</strong> OF THIS DOCUMENT IS EXPRESSLY <strong>FORBIDDEN</strong>.</p>
+    <p> <strong>AUTHENTICATION</strong> IS REQUIRED TO <strong>DECRYPT</strong> THIS DOCUMENT AND INITIATE AN <strong>ACCESS SESSION</strong>.</p>
+    <p> WHILE AN ACCESS SESSION IS <strong>IN PROGRESS</strong>, PERSONNEL ARE <strong>FORBIDDEN FROM LEAVING</strong> THE TERMINAL. </p>
+    <p> AFTER THE ACCESS SESSION IS <strong>TERMINATED</strong>, THE CONTENTS OF THE DOCUMENT WILL BE <strong>ENCRYPTED.</strong> </p>
+  </div>
+  <p style="text-align: right;" > DOCUMENT ID: <span class="inverse">{{inode.uuid}}</span> </p>
+  <img class="barcode" src="/assets/barcode.gif" />
+  <img class="barcode2" src="/assets/barcode2.png" />
+</div>
+
+<style>
+  .classified-notice {
+    width: 28em;
+    margin: auto;
+    padding: 2em 3em;
+    line-height: 1.4;
+    position: relative;
+    font-size: 0.9rem;
+    font-family: 'Roboto Condensed';
+    color: var(--black);
+    background-color: var(--white);
+  }
+
+  .classified-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .classified-notice h2 {
+    font-size: 1.2rem;
+    font-weight: normal;
+    margin: 0.8em 0;
+  }
+
+  .classified-notice p {
+    margin: 1em 0;
+  }
+
+  .classified-header img {
+    border: 5px solid black;
+    box-shadow: 6px 6px;
+    height: 100px;
+    margin-left: 15px;
+  }
+
+
+  .classified-body {
+    border: 3px solid var(--black);
+    padding: 1.3em 1.3em;
+    margin: 40px 0 80px;
+    box-shadow: 6px 6px;
+  }
+
+  .inverse {
+    color: var(--white);
+    background-color: var(--black);
+    padding: 0 0.5em;
+    margin: 0 0.2em;
+    display: inline-block;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .barcode {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    height: 40px;
+  }
+
+  .barcode2 {
+    position: absolute;
+    bottom: 0px;
+    left: 60px;
+    height: 30px;
+  }
+</style>
+
