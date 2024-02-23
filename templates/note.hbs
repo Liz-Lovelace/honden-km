@@ -1,6 +1,6 @@
 <button onclick="copyToClipboard()">Copy to Clipboard</button>
 <p class="note" id="copyableNote">
-  {{content}}
+  {{entity.contents}}
 </p>
 
 <style>
@@ -20,6 +20,7 @@
         document.execCommand('copy');
         document.body.removeChild(textarea);
     }
+
     copyableNote.innerHTML = copyableNote.innerHTML.split('\n').map(line => line.replace(/^ {1,6}/, '')).join('<br>').slice(6);
     console.log(copyableNote.innerHTML);
 </script>

@@ -25,22 +25,26 @@ function extensionToMIME(extension) {
 async function insertFiles() {
   await database.initializeDB();
   try {
-    const files = await readdir(config.baseFileStorePath);
+    const files = await readdir(path.join(config.baseFileStorePath, 'media'));
 
     for (const file of files) {
       try {
-        const fullPath = path.join(config.baseFileStorePath, file);
+        const fullPath = path.join(config.baseFileStorePath, 'media', file);
         const fileStat = await stat(fullPath);
 
         if (fileStat.isFile()) {
           const ext = path.extname(file);
 
+          let uuid = await database.temp(file);
+          // await fs.promises.rename(fullPath, path.join(config.baseFileStorePath, 'media', uuid))
+          /*
           if (['.md', '.txt', '.note', ''].includes(ext)) {
             await database.insertNote(file);
           } else if (['.jpeg', '.jpg', '.png', '.pdf', '.webm', '.mp4', '.mkv', '.mp3'].includes(ext)) {
             const mimeType = extensionToMIME(ext);
             await database.insertMedia(file, mimeType);
           }
+          */
         }
       } catch (error) {
         console.log('Error inserting file:', file, error);

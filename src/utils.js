@@ -1,18 +1,4 @@
-import fs from 'fs/promises';
-import path from 'path';
-import config from '../config.js';
-import db from './database.js';
 import Fuse from 'fuse.js';
-
-async function getFileContent(uuid) {
-  const inode = await db.getInode(uuid);
-  const filePath = path.join(config.baseFileStorePath, inode.entity.filename);
-  return fs.readFile(filePath, 'utf8');
-}
-
-async function startEditor(filePath) {
-  return Bun.spawn(['alacritty', '-e', 'nvim', filePath]);
-}
 
 function applySearch(search, inodes) {
   if (search == ' ') {
@@ -54,14 +40,4 @@ function explainError(error) {
   return errorDescription;
 }
 
-async function ensureScratchpadExists() {
-  const scratchpadPath = path.join(config.baseFileStorePath, 'scratchpad');
-
-  if (await Bun.file(scratchpadPath).exists()) {
-    return;
-  }
-
-  Bun.write(scratchpadPath, '');
-  await db.insertNote('scratchpad');
-}
-export { getFileContent, startEditor, applySearch, explainError, ensureScratchpadExists };
+export { applySearch, explainError };

@@ -1,9 +1,9 @@
 import express from 'express';
 import moment from 'moment';
 import path from 'path';
-import config from '../config.js';
 import db from './database.js';
-import { startEditor, explainError, getFileContent, applySearch, ensureScratchpadExists } from './utils.js';
+import { explainError, applySearch } from './utils.js';
+import files from './files.js';
 import assert from 'node:assert/strict';
 
 function endpoint(fn) {
@@ -12,7 +12,15 @@ function endpoint(fn) {
       const output = await fn.apply(this, [req]);
 
       if (output.file)
-      {res.sendFile(output.file);}
+      {
+        if (!output.filetype) {
+          res.sendFile(output.file);
+        } else {
+          res.sendFile(output.file, { headers: { 'Content-Type': output.filetype } });
+        }
+      }
+      else if (output.htmxRedirect)
+      {res.header({ 'HX-Redirect': output.htmxRedirect }).send('');}
       else if (output.redirect)
       {res.redirect(output.redirect);}
       else
@@ -30,16 +38,12 @@ function registerEndpoints(app, templates) {
   app.get('/view', endpoint(async req => {
     const { uuid } = req.query;
 
-    await ensureScratchpadExists();
-
     const inode = await db.getInode(uuid);
-    
-    const content = await getFileContent(uuid);
 
     let linkInodes = await db.getConnectedInodes(uuid);
     linkInodes = linkInodes.map(inode => ({ ...inode, buttonActionDisconnect: true }));
 
-    return templates['index']({ content, inode, linkInodes });
+    return templates['index']({ inode, linkInodes });
   }));
 
   app.post('/links', endpoint(async req => {
@@ -52,6 +56,25 @@ function registerEndpoints(app, templates) {
     inode.linkFromUuid = uuid1;
 
     return templates['entityLink']({ ...inode, buttonActionDisconnect: true });
+  }));
+
+  app.post('/note', endpoint(async req => {
+    const filename = req.headers['hx-prompt'];
+    assert(filename, 'you should specify a filename');
+
+    const uuid = await db.insertNote(filename);
+
+    return { htmxRedirect: `/view?uuid=${uuid}` };
+  }));
+
+  app.post('/media', endpoint(async req => {
+    // todo: idk i havent thought of the flow yet
+    const filename = req.headers['hx-prompt'];
+    assert(filename, 'you should specify a filename');
+
+    const uuid = await db.insertNote(filename);
+
+    return { htmxRedirect: `/view?uuid=${uuid}` };
   }));
 
   app.delete('/links', endpoint(async req => {
@@ -75,17 +98,22 @@ function registerEndpoints(app, templates) {
     return templates['entityLink']({ ...inode, buttonActionDisconnect: true });
   }));
 
-  app.get('/file', endpoint(async req => {
-    const inode = await db.getInode(req.query.uuid);
-    const filePath = path.join(config.baseFileStorePath, inode.entity.filename);
-    return { file: filePath };
+  app.get('/file/:uuid', endpoint(async req => {
+    const inode = await db.getInode(req.params.uuid);
+    if (inode.type == 'note') {
+      return inode.entity.contents;
+    } else if (inode.type == 'media') {
+      return { file: files.mediaURL(inode.uuid), filetype: inode.entity.filetype };
+    }
+
+    return 'unavailable';
   }));
 
   app.patch('/rename', endpoint(async req => {
     const { newName } = req.body;
     assert(newName, 'you should specify a new name');
     await db.renameInode(req.query.uuid, newName);
-    return 'File renamed successfully';
+    return 'Renamed successfully';
   }));
 
 
@@ -121,7 +149,7 @@ function registerEndpoints(app, templates) {
       .reduce((acc, newElem) => acc + newElem, '');
   }));
 
-  app.get('/', endpoint(async req => {
+  app.get('/', endpoint(async() => {
     const allInodes = await db.getAllInodes();
     const foundInode = allInodes.find(inode => inode.entity.filename === 'README');
     
@@ -133,9 +161,13 @@ function registerEndpoints(app, templates) {
   }));
 
   app.put('/edit_note', endpoint(async req => {
-    let inode = await db.getInode(req.query.uuid);
-    const filePath = path.join(config.baseFileStorePath, inode.entity.filename);
-    await startEditor(filePath);
+    let uuid = req.query.uuid;
+    let filePath = await files.pullNote(uuid);
+    await Bun.spawn(['alacritty', '-e', 'nvim', filePath], {
+      onExit() {
+        files.pushNote(uuid);
+      },
+    });
     return 'editing';
   }));
 

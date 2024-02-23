@@ -1,10 +1,9 @@
 import sqlite3 from 'sqlite3';
 import assert from 'node:assert/strict';
-import path from 'path';
-import fs from 'fs/promises';
 import uuidGenerator from 'short-uuid';
 import { promisify } from 'util';
 import config from '../config.js';
+import files from './files.js';
 
 const sqliteDB = new sqlite3.Database(config.baseFileStorePath + 'honden.db');
 sqliteDB.run = promisify(sqliteDB.run.bind(sqliteDB));
@@ -33,19 +32,21 @@ async function initializeDB() {
   await sqliteDB.run(`
     CREATE TABLE IF NOT EXISTS note (
       uuid TEXT PRIMARY KEY,
-      filename TEXT UNIQUE,
+      filename TEXT,
+      contents TEXT,
       FOREIGN KEY(uuid) REFERENCES inodes(uuid)
     );
   `);
   await sqliteDB.run(`
     CREATE TABLE IF NOT EXISTS media (
       uuid TEXT PRIMARY KEY,
-      filename TEXT UNIQUE,
+      filename TEXT,
       filetype TEXT,
       FOREIGN KEY(uuid) REFERENCES inodes(uuid)
     );
   `);
 }
+
 async function getInode(uuid) {
   let inode = await sqliteDB.get('SELECT * FROM inodes WHERE uuid = ?', uuid);
   assert(inode, `can't find inode with uuid ${uuid}`);
@@ -54,6 +55,15 @@ async function getInode(uuid) {
   assert(entity, `can't find entity with uuid ${uuid}`);
 
   return { ...inode, entity };
+}
+
+async function getNoteContents(uuid) {
+  const note = await sqliteDB.get('SELECT contents FROM note WHERE uuid = ?', uuid);
+  return note ? note.contents : null;
+}
+
+async function updateNoteContents(uuid, contents) {
+  await sqliteDB.run('UPDATE note SET contents = ? WHERE uuid = ?', contents, uuid);
 }
 
 async function insertNote(filename) {
@@ -82,14 +92,13 @@ async function deleteInode(uuid) {
   try {
     await sqliteDB.run('DELETE FROM links WHERE inode1_uuid = ? OR inode2_uuid = ?', uuid, uuid);
 
-    if (inode.type === 'media' || inode.type === 'note') {
-      const entity = await sqliteDB.get(`SELECT * FROM ${inode.type} WHERE uuid = ?`, uuid);
-      const filePath = path.join(config.baseFileStorePath, entity.filename);
-      await fs.unlink(filePath);
-      await sqliteDB.run(`DELETE FROM ${inode.type} WHERE uuid = ?`, uuid);
+    if (inode.type === 'media') {
+      await files.deleteMedia(uuid);
     }
 
+    await sqliteDB.run(`DELETE FROM ${inode.type} WHERE uuid = ?`, uuid);
     await sqliteDB.run('DELETE FROM inodes WHERE uuid = ?', uuid);
+
     await sqliteDB.run('COMMIT');
   } catch (error) {
     await sqliteDB.run('ROLLBACK');
@@ -99,23 +108,13 @@ async function deleteInode(uuid) {
 
 async function renameInode(uuid, newFilename) {
   const inode = await getInode(uuid);
-
-  const existingEntity = await sqliteDB.get(`
-    SELECT 1 FROM note WHERE filename = ? 
-    UNION 
-    SELECT 1 FROM media WHERE filename = ?
-  `, newFilename, newFilename);
-
-  if (existingEntity) {
-    throw new Error('A file with this name already exists');
+  if (!['media', 'note'].includes(inode.type)) {
+    console.log('RENAME ERROR: inode type unsupported');
+    return;
   }
-
-  const oldFilePath = path.join(config.baseFileStorePath, inode.entity.filename);
-  const newFilePath = path.join(config.baseFileStorePath, newFilename);
-
   await sqliteDB.run(`UPDATE ${inode.type} SET filename = ? WHERE uuid = ?`, newFilename, uuid);
-  await fs.rename(oldFilePath, newFilePath);
 }
+
 async function connect(uuid1, uuid2) {
   if (uuid1 === uuid2) {
     console.log('LINK CONNECTION ERROR: inodes are identical');
@@ -177,5 +176,7 @@ export default {
   getAllInodes,
   deleteInode,
   renameInode,
+  getNoteContents,
+  updateNoteContents,
 };
 

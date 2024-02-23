@@ -57,24 +57,31 @@
 <body>
 
 {{> search this}}
-
+Create
+<button hx-post="/note" hx-prompt="Enter a name for the new note"> Note </button>
+<button> <s> Media </s> </button>
+<br>
 <p> {{inode.entity.filename}} </p>
-<a href="/file?uuid={{inode.uuid}}">(Direct link)</a>
+
+<a href="/file/{{inode.uuid}}">(Direct link)</a>
+<a download="{{inode.entity.filename}}" href="/file/{{inode.uuid}}">(Download)</a>
+
 <button hx-delete="/inode?uuid={{inode.uuid}}" hx-confirm="Are you sure you want to delete"> DELETE </button>
-<button hx-put="/edit_note?uuid={{inode.uuid}}"> EDIT CONTENT </button>
+{{#isType inode 'note'}}
+  <button hx-put="/edit_note?uuid={{inode.uuid}}"> EDIT CONTENT </button>
+{{/isType}}
 
 <form hx-patch="/rename?uuid={{inode.uuid}}" >
   <input name="newName" type="text" id="newFilename" placeholder="rename">
-  <!-- <button  hx-vals='{"uuid": "{{inode.uuid}}", "newName": document.getElementById("newFilename").value}'>RENAME</button> -->
 </form>
 
 <div class="main-container">
   <div id="contentDisplay">
     {{#isType inode 'note'}}
-      {{>note this}}
+      {{>note inode}}
     {{/isType}}
     {{#isType inode 'media'}}
-      {{>media this}}
+      {{>media inode}}
     {{/isType}}
     <!--
       {{>classifiedNotice}}
@@ -88,4 +95,6 @@
 </div>
 
 </body>
+<script>
+</script>
 </html>
