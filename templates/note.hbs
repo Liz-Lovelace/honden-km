@@ -1,4 +1,4 @@
-<button onclick="copyToClipboard()">Copy to Clipboard</button>
+<button class="copy-to-clipboard-btn"onclick="copyToClipboard()">Copy to Clipboard</button>
 <p class="note" id="copyableNote">
   {{entity.contents}}
 </p>
@@ -6,7 +6,12 @@
 <style>
   .note {
     white-space: pre-wrap;
-    font-family: mono;
+  }
+
+  .copy-to-clipboard-btn {
+    right: 10px;
+    display: block;
+    position: absolute;
   }
 </style>
 

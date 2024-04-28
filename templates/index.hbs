@@ -7,10 +7,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
+    @font-face {
+      font-family: 'iosevka';
+      src: url('/assets/iosevka-splendid-regular.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
 
     :root {
       --black: #0e0c0b;
+      --lvl1: #161515;
+      --lvl2: #2c2b2b;
       --grey: #999;
       --red: #ff0000;
       --green: #8bec55;
@@ -24,56 +31,88 @@
     body {
       background-color: var(--black);
       color: var(--white);
+      padding: 10px;
     }
 
     * {
+      font-family: 'iosevka';
       margin: 0;
       padding: 0;
     }
 
+    a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+    a:visited {
+      color: var(--cyan);
+    }
+
     .main-container {
       display: flex;
+      gap: 10px;
+      margin-top: 10px;
     }
 
     .main-container > * {
       border: 1px solid var(--red);
-      margin: 5px;
     }
 
     #contentDisplay {
       max-width: 60em;
       width: 100%;
       min-height: 30em;
-      padding: 8px;
+      padding: 10px;
+      position: relative;
     }
 
     .links {
       min-height: 10em;
       width: 25em;
+      padding: 10px;
     }
 
+    button, input {
+      font-size: 1rem;
+      background-color: var(--lvl1);
+      color: var(--white);
+      padding: 0.3em 0.6em;
+      min-width: 6em;
+      border: 1px solid var(--grey);
+    }
+
+    button:hover {
+      cursor: pointer;
+    }
+
+    button:active {
+      background-color: var(--white);
+      color: var(--black);
+    }
+
+    .filename {
+      font-size: 2rem;
+      text-align: center;
+    }
+
+    .bottom-bar {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .bottom-bar a {
+      background-color: var(--lvl1);
+      padding: 0.3em 1em;
+    }
   </style>
 </head>
 <body>
 
-{{> search this}}
-Create
-<button hx-post="/note" hx-prompt="Enter a name for the new note"> Note </button>
-<button> <s> Media </s> </button>
+{{>topBar this}}
+
 <br>
-<p> {{inode.entity.filename}} </p>
-
-<a href="/file/{{inode.uuid}}">(Direct link)</a>
-<a download="{{inode.entity.filename}}" href="/file/{{inode.uuid}}">(Download)</a>
-
-<button hx-delete="/inode?uuid={{inode.uuid}}" hx-confirm="Are you sure you want to delete"> DELETE </button>
-{{#isType inode 'note'}}
-  <button hx-put="/edit_note?uuid={{inode.uuid}}"> EDIT CONTENT </button>
-{{/isType}}
-
-<form hx-patch="/rename?uuid={{inode.uuid}}" >
-  <input name="newName" type="text" id="newFilename" placeholder="rename">
-</form>
+<p class="filename"> {{inode.entity.filename}} </p>
 
 <div class="main-container">
   <div id="contentDisplay">
@@ -92,6 +131,11 @@ Create
         {{>entityLink this}}
     {{/each}}
   </div>
+</div>
+
+<div class="bottom-bar">
+  <a href="/file/{{inode.uuid}}">direct link</a>
+  <a download="{{inode.entity.filename}}" href="/file/{{inode.uuid}}">download</a>
 </div>
 
 </body>
