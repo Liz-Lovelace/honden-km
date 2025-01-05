@@ -1,5 +1,5 @@
 let config = {};
 
-config.baseFileStorePath = '/home/m/kmvault/';
+config.baseFileStorePath = '/home/liz/honden-km-db/';
 
 export default config;
